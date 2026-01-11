@@ -3,6 +3,7 @@ from mini.core.state import state_manager, MiniState
 from mini.audio.wake_word_detection import run_wake_word_detection
 from mini.ui.tray import tray_app
 from mini.audio.listener import Audio_listener
+from mini.audio.vad import vad_speech
 
 wake_thread = True
 wake_running = False
@@ -30,9 +31,16 @@ def start_wake_word_listener():
 
         while not wake_stop_event.is_set():
             frame = listener.read()
+            is_speech=vad_speech(frame)
+            # print(is_speech)
             if frame is None:
                 continue
 
+            if is_speech:
+                print("speech detected")
+            if not is_speech:
+                print("silence detected")
+                continue
             if run_wake_word_detection(frame,wake_stop_event):
                 print("Wake word detected!")
 
@@ -65,6 +73,15 @@ def stop_wake_word_listener():
     listener.stop()
     print("Wake word listener stopped")
 
+# def vad_state_detection(frame):
+#     while True:
+#         vad_state=vad_speech(frame)
+#         if vad_state:
+#             print(vad_state)
+#             return
+#         else:
+#             print("silence detected")
+#             return 0
 
 
 def main():
