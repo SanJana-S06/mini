@@ -3,13 +3,13 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from mini.core.state import state_manager,MiniState
 
-_start_wake_word_listener= None
-_stop_wake_word_listener= None
+_start_Mini= None
+_stop_Mini= None
 
-def tray_app(start_wake_word_listener,stop_wake_word_listener):
-	global _start_wake_word_listener,_stop_wake_word_listener
-	_start_wake_word_listener=start_wake_word_listener
-	_stop_wake_word_listener=stop_wake_word_listener
+def tray_app(start_Mini,stop_Mini):
+	global _start_Mini,_stop_Mini
+	_start_Mini=start_Mini
+	_stop_Mini=stop_Mini
 	app=QApplication(sys.argv)
 	app.setQuitOnLastWindowClosed(False)
 
@@ -48,13 +48,13 @@ def tray_app(start_wake_word_listener,stop_wake_word_listener):
 def set_voice_state():
 	state_manager.set_state(MiniState.VOICE)
 	# print("Voice State Set",state_manager.get_state())
-	state_manager.set_state(MiniState.ACTIVE)
-	_start_wake_word_listener()
-	print("Mini Activated! state: ",state_manager.get_state())
+	state_manager.set_state(MiniState.INACTIVE)
+	_start_Mini()
+	print("Mini state: ",state_manager.get_state())
 
 def set_off_state():
 	state_manager.set_state(MiniState.OFF)
-	_stop_wake_word_listener()
+	_stop_Mini()
 	print("Off State Set",state_manager.get_state())
 
 

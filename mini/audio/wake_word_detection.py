@@ -1,10 +1,11 @@
 import pvporcupine
 # from mini.audio.listener import audio_frame
 # import mini.main
+# from mini.core.state import state_manager, MiniState
 import sounddevice as sd
 import numpy as np 
 from dotenv import load_dotenv
-from mini.audio.vad import vad_speech
+# from mini.audio.vad import vad_speech
 import os
 
 load_dotenv()
@@ -23,11 +24,13 @@ porcupine = pvporcupine.create(
   )
 
 
-def run_wake_word_detection(frame,stop_event)->bool:
-  
+def run_wake_word_detection(frame)->bool:
+
+
   # print("wake word code running frame:", frame.shape)
   try:
     pcm = frame[:, 0].astype('int16').tolist()
+    
     # print(len(pcm), porcupine.frame_length)
     return porcupine.process(pcm)>=0
   except Exception as e:
