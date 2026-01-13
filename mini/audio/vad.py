@@ -1,6 +1,6 @@
 import webrtcvad
 import time
-# from mini.core.state import state_manager,MiniState
+from mini.core.state import state_manager,MiniState
 vad = webrtcvad.Vad(3)
 
 sample_rate=16000
@@ -17,23 +17,28 @@ class VAD_processor:
 	def reset(self):
 		self.last_speech_time=None
 
-	def vad_speech(self, frame) -> bool:
+	def vad_speech(self, frame)-> int:
 		try:
 			now = time.time()
 			# frame = b'\x00' * 320 
-			# is_speech = False
+			speech_detected = False
 			for i in range(0, 480, 160):
 				vad_chunk = frame[i:i+160].astype('int16').tobytes()
 				if vad.is_speech(vad_chunk, sample_rate):
-					self.last_speech_time= now
-					return True
-			if self.last_speech_time is None:
-				return True
+					speech_detected= True
+					break
 			
-			return (now - self.last_speech_time) < self.timeout
+			if speech_detected:
+				self.last_speech_time= now
+				return 1
+			if self.last_speech_time is None:
+				return 1
+			
+			if (now - self.last_speech_time) >= self.timeout:
+				return 2
 					# print("No speech detected for 5 seconds. Stopping Mini.")
 					# state_manager.set_state(MiniState.INACTIVE)
-			# return now - last_speech_time >= SILENCE_TIMEOUT
+			return 0
 		except Exception as e:
 			print("Error in vad:", e)
 			return False
