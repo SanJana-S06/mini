@@ -6,11 +6,11 @@ vad = webrtcvad.Vad(3)
 sample_rate=16000
 frame_duration=20
 frame_size= int(sample_rate * frame_duration/1000)* 2
-SILENCE_TIMEOUT=10
+# SILENCE_TIMEOUT=15
 
 class VAD_processor:
 
-	def __init__(self):
+	def __init__(self,SILENCE_TIMEOUT):
 		self.timeout=SILENCE_TIMEOUT
 		self.last_speech_time= None
 	
