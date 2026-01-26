@@ -5,6 +5,9 @@ from mini.ui.tray import tray_app
 from mini.audio.listener import Audio_listener
 from mini.audio.vad import VAD_processor
 from mini.audio.speech_to_text import sst,audio_queue,convert_to_speech
+from mini.commands.normalizer import normalize
+from mini.commands.parser import parse
+from mini.core.router import route
 
 wake_thread = True
 wake_running = False
@@ -53,6 +56,11 @@ def start_Mini():
                     cmd=convert_to_speech()
                     if cmd:
                         print(cmd)
+                        cmds=normalize(cmd)
+                        for part in cmds:
+                            print(part.strip())
+                            parser_data=parse(part)
+                            route(parser_data,stop_Mini)
                     # print("speech detecteds")
                     # recording= True
                     # silence_counter=0
@@ -100,7 +108,7 @@ def stop_Mini():
 
     wake_stop_event.set()
     wake_running = False
-    # porcupine.delete()
+    porcupine.delete()
     print("wake listener stop requested")
     listener.stop()
     print("Wake word listener stopped")
@@ -114,6 +122,28 @@ def stop_Mini():
 #         else:
 #             print("silence detected")
 #             return 0
+# def shutdown():
+#     print("Shutting down Mini...")
+
+#     wake_stop_event.set()
+
+#     try:
+#         listener.stop()
+#     except:
+#         pass
+
+#     try:
+#         if porcupine:
+#             porcupine.delete()
+#     except:
+#         pass
+
+#     try:
+#         with audio_queue.mutex:
+#             audio_queue.queue.clear()
+#     except:
+#         pass
+#     app.exec()
 
 
 def main():
