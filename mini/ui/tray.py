@@ -1,4 +1,8 @@
+import os
 import sys
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from mini.core.state import state_manager,MiniState
@@ -10,6 +14,8 @@ def tray_app(start_Mini,stop_Mini):
 	global _start_Mini,_stop_Mini
 	_start_Mini=start_Mini
 	_stop_Mini=stop_Mini
+	QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+	QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 	app=QApplication(sys.argv)
 	app.setQuitOnLastWindowClosed(False)
 

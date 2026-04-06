@@ -1,6 +1,5 @@
 import threading
 from mini.core.state import state_manager, MiniState
-from mini.audio.wake_word_detection import run_wake_word_detection, porcupine
 from mini.ui.tray import tray_app
 from mini.audio.listener import Audio_listener
 from mini.audio.vad import VAD_processor
@@ -34,58 +33,38 @@ def start_Mini():
 
     def audio_loop():
         listener.start()
-        print("Wake word listening started")
+        print("Local listener started")
 
         while not wake_stop_event.is_set():
             frame = listener.read()
             if frame is None:
                 continue
-            if state_manager.get_state() == MiniState.INACTIVE:
-                if run_wake_word_detection(frame):
-                    # wake_detected.set()
-                    print("Wake word detected!")
-                    vad_active_or_inactive.reset()
-                    # vad_speech.reset()
-                    state_manager.set_state(MiniState.ACTIVE)
-            
-            elif state_manager.get_state() == MiniState.ACTIVE:
-                # wake_detected.wait()
-                is_speech_active_inactive = vad_active_or_inactive.vad_speech(frame)
+
+            is_speech_active_inactive = vad_active_or_inactive.vad_speech(frame)
+            if state_manager.get_state() == MiniState.INACTIVE and is_speech_active_inactive == 1:
+                print("Speech detected, activating listener")
+                vad_active_or_inactive.reset()
+                state_manager.set_state(MiniState.ACTIVE)
+
+            if state_manager.get_state() == MiniState.ACTIVE:
                 is_speech = vad_speech.vad_speech(frame)
-                if is_speech==1:
+                if is_speech == 1:
                     audio_queue.put(frame)
-                if is_speech==2:
-                    cmd=convert_to_speech()
+                if is_speech == 2:
+                    cmd = convert_to_speech()
                     if cmd:
                         print(cmd)
-                        cmds=normalize(cmd)
+                        cmds = normalize(cmd)
                         for part in cmds:
                             print(part.strip())
-                            parser_data=parse(part)
-                            route(parser_data,stop_Mini)
-                    # print("speech detecteds")
-                    # recording= True
-                    # silence_counter=0
-                    # buffer.append(frame)
-
-                # elif recording:
-                #     silence_counter+=1
-
-                    # if convert_to_speech(silence_counter,buffer):
-                    #     buffer.clear()
-                    #     recording=False
-                    #     silence_counter=0
-                if is_speech_active_inactive==2:
+                            parser_data = parse(part)
+                            route(parser_data, stop_Mini)
+                if is_speech_active_inactive == 2:
                     print("No speech detected, returning to INACTIVE state")
                     state_manager.set_state(MiniState.INACTIVE)
-                    
-                    # continue
-                # print(is_speech)
-            if frame is None:
-                    continue
- 
+
         listener.stop()
-        print("Wake word listener stopped")
+        print("Local listener stopped")
 
     try:
         preload_model()
@@ -111,13 +90,9 @@ def stop_Mini():
 
     wake_stop_event.set()
     wake_running = False
-    try:
-        porcupine.delete()
-    except Exception as e:
-        print("Error deleting porcupine instance:", e)
     print("wake listener stop requested")
     listener.stop()
-    print("Wake word listener stopped")
+    print("Local listener stopped")
 
 # def vad_state_detection(frame):
 #     while True:

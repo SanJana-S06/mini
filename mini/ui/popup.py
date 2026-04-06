@@ -1,7 +1,13 @@
+import os
+from PySide6.QtCore import Qt
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PySide6.QtWidgets import QApplication,QWidget
 import sys
 from PySide6.QtGui import QGuiApplication
 
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 app = QApplication(sys.argv)
 screen = QGuiApplication.primaryScreen()
 size = screen.size()
