@@ -32,7 +32,10 @@ class Audio_listener:
 		print("listening....")
 
 	def read(self):
-		return self.q.get()
+		try:
+			return self.q.get(timeout=0.1)
+		except queue.Empty:
+			return None
 
 	def stop(self):
 		self.stop_event.set()

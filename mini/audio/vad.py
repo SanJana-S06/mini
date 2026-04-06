@@ -1,7 +1,14 @@
-import webrtcvad
 import time
 from mini.core.state import state_manager,MiniState
-vad = webrtcvad.Vad(3)
+
+try:
+    import webrtcvad
+    vad = webrtcvad.Vad(3)
+    VAD_AVAILABLE = True
+except ModuleNotFoundError:
+    print("Warning: webrtcvad is not installed. VAD will be disabled.")
+    vad = None
+    VAD_AVAILABLE = False
 
 sample_rate=16000
 frame_duration=20
@@ -18,6 +25,18 @@ class VAD_processor:
 		self.last_speech_time=None
 
 	def vad_speech(self, frame)-> int:
+		if not VAD_AVAILABLE:
+			now = time.time()
+			if self.last_speech_time is None:
+				self.last_speech_time = now
+				return 1
+			if frame is None:
+				if (now - self.last_speech_time) >= self.timeout:
+					return 2
+				return 0
+			if (now - self.last_speech_time) >= self.timeout:
+				return 2
+			return 1
 		try:
 			now = time.time()
 			# frame = b'\x00' * 320 

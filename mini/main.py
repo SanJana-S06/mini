@@ -1,10 +1,10 @@
 import threading
 from mini.core.state import state_manager, MiniState
-from mini.audio.wake_word_detection import run_wake_word_detection
+from mini.audio.wake_word_detection import run_wake_word_detection, porcupine
 from mini.ui.tray import tray_app
 from mini.audio.listener import Audio_listener
 from mini.audio.vad import VAD_processor
-from mini.audio.speech_to_text import sst,audio_queue,convert_to_speech
+from mini.audio.speech_to_text import sst,audio_queue,convert_to_speech,preload_model
 from mini.commands.normalizer import normalize
 from mini.commands.parser import parse
 from mini.core.router import route
@@ -38,6 +38,8 @@ def start_Mini():
 
         while not wake_stop_event.is_set():
             frame = listener.read()
+            if frame is None:
+                continue
             if state_manager.get_state() == MiniState.INACTIVE:
                 if run_wake_word_detection(frame):
                     # wake_detected.set()
@@ -86,6 +88,7 @@ def start_Mini():
         print("Wake word listener stopped")
 
     try:
+        preload_model()
         listen_thread = threading.Thread(target=audio_loop, daemon=True)
         listen_thread.start()
         speech_thread = threading.Thread(target=sst,args=(wake_stop_event,state_manager), daemon=True)
@@ -108,7 +111,10 @@ def stop_Mini():
 
     wake_stop_event.set()
     wake_running = False
-    porcupine.delete()
+    try:
+        porcupine.delete()
+    except Exception as e:
+        print("Error deleting porcupine instance:", e)
     print("wake listener stop requested")
     listener.stop()
     print("Wake word listener stopped")
