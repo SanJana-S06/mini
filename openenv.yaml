@@ -11,9 +11,9 @@ requirements:
   - psutil
   - pyautogui
   - pillow
+  - openai
   - openenv-core
   - appopener
-  - tkinter
 tasks:
   - name: meeting_note
     description: "Compose a short meeting note with agenda and next steps."
