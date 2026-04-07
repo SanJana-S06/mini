@@ -22,7 +22,7 @@
 [Ll]ocal
 [Ss]cripts
 pyvenv.cfg
-.env
+mini/.env
 pip-selfcheck.json
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Git,venv

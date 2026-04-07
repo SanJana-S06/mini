@@ -20,7 +20,7 @@ FRAME_LENGTH = 512
 
 porcupine = pvporcupine.create(
     access_key=ACCESS_KEY,
-    keyword_paths=["C:/Users/shrey/mini/hey-mini_en_windows_v4_0_0.ppn"]
+    keyword_paths=["C:\\Users\\Sanjana.S\\OneDrive\\Desktop\\project mini\\hey-mini_en_windows_v4_0_0.ppn"]
   )
 
 
