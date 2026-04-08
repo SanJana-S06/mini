@@ -15,7 +15,7 @@ dependencies = [
 
 [project.scripts]
 # This tells the validator how to launch your app
-server = "server.app:app"
+server = "server.app:main"
 
 [build-system]
 requires = ["hatchling"]
