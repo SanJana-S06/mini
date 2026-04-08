@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
 psutil
 pyautogui
@@ -7,3 +7,6 @@ pillow
 openai
 openenv-core
 appopener
+huggingface_hub
+transformers
+torch

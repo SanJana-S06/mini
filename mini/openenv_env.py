@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import psutil
@@ -88,6 +90,24 @@ TASK_DEFINITIONS: Dict[str, TaskDefinition] = {
         difficulty="hard",
     ),
 }
+
+TASKS_FILE = Path(__file__).resolve().parents[1] / "tasks.json"
+
+
+def _load_tasks_file(path: Path = TASKS_FILE) -> List[Dict[str, Any]]:
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            tasks = json.load(f)
+        if not isinstance(tasks, list):
+            raise ValueError("tasks.json must contain a list of tasks.")
+        return tasks
+    except FileNotFoundError:
+        return []
+    except Exception:
+        return []
+
+
+TASKS = _load_tasks_file()
 
 
 class TaskWorkspace:
@@ -174,8 +194,25 @@ class MiniOpenEnv(Environment):
         self.current_observation: MiniOpenEnvObservation = self._default_observation()
         self.current_reward: MiniOpenEnvReward = MiniOpenEnvReward(value=0.0, detail="reset")
         self.workspace = TaskWorkspace()
+        self.tasks = TASKS
+        self.current_task: Optional[Dict[str, Any]] = None
         self.task_def = TASK_DEFINITIONS.get(self.task_name, TASK_DEFINITIONS["meeting_note"])
+        if self.tasks:
+            default_task = self._find_task(self.task_name) or self.tasks[0]
+            self._apply_task(default_task)
         self.reset(task_name=self.task_name)
+
+    def _find_task(self, task_name: str) -> Optional[Dict[str, Any]]:
+        for task in self.tasks:
+            if task.get("task_name") == task_name:
+                return task
+        return None
+
+    def _apply_task(self, task: Dict[str, Any]) -> None:
+        self.current_task = task
+        self.task_name = task.get("task_name", self.task_name)
+        self.max_steps = int(task.get("max_steps", self.max_steps))
+        self.task_def = TASK_DEFINITIONS.get(self.task_name, TASK_DEFINITIONS["meeting_note"])
 
     def _default_observation(self) -> MiniOpenEnvObservation:
         return MiniOpenEnvObservation(
@@ -190,8 +227,15 @@ class MiniOpenEnv(Environment):
 
     def reset(self, task_name: Optional[str] = None) -> MiniOpenEnvObservation:
         if task_name is not None:
-            self.task_name = task_name
-        self.task_def = TASK_DEFINITIONS.get(self.task_name, TASK_DEFINITIONS["meeting_note"])
+            task = self._find_task(task_name)
+            if task is not None:
+                self._apply_task(task)
+            else:
+                self.task_name = task_name
+                self.task_def = TASK_DEFINITIONS.get(self.task_name, TASK_DEFINITIONS["meeting_note"])
+        elif self.current_task is not None:
+            self._apply_task(self.current_task)
+
         self.step_count = 0
         self.done = False
         self.last_action = None
@@ -362,5 +406,5 @@ class MiniOpenEnv(Environment):
 
 
 def get_task_names() -> List[str]:
-    return list(TASK_DEFINITIONS.keys())
+    return [task.get("task_name") for task in TASKS if isinstance(task, dict) and task.get("task_name")]
 

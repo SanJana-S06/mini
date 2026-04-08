@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
@@ -30,7 +30,11 @@ def reset(request: ResetRequest) -> dict:
 
 @app.post("/step")
 def step(request: StepRequest) -> dict:
-    observation, reward, done, info = env.step(request.action)
+    try:
+        observation, reward, done, info = env.step(request.action)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
     return {
         "observation": observation.dict(),
         "reward": reward,
@@ -51,3 +55,8 @@ def state() -> dict:
 @app.get("/ping")
 def ping() -> dict:
     return {"ok": True}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
