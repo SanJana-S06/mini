@@ -3,7 +3,7 @@ name: mini-productivity-openenv
 description: "A desktop productivity OpenEnv environment for drafting meeting notes, customer replies, and incident reports."
 framework: python
 language: python
-entrypoint: server.py
+entrypoint: server.app:main
 requirements:
   - fastapi
   - uvicorn
