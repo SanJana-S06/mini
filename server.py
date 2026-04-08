@@ -12,6 +12,9 @@ env = MiniOpenEnv()
 class ResetRequest(BaseModel):
     task_name: Optional[str] = None
 
+    # Add this inner class to allow empty bodies
+    class Config:
+        extra = "allow"
 
 class StepRequest(BaseModel):
     action: MiniOpenEnvAction
@@ -21,8 +24,10 @@ async def root():
     return {"status": "running", "message": "OpenEnv Environment Live"}
 
 @app.post("/reset")
-def reset(request: ResetRequest) -> dict:
-    observation = env.reset(task_name=request.task_name)
+def reset(request: Optional[ResetRequest] = None) -> dict:
+    # If request is None or task_name is missing, default to a task
+    task = request.task_name if (request and request.task_name) else "meeting_note"
+    observation = env.reset(task_name=task)
     return {
         "observation": observation.dict(),
         "reward": 0.0,

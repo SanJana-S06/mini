@@ -21,4 +21,4 @@ COPY . .
 
 EXPOSE 7860
 
-CMD ["sh", "-c", "touch /root/.Xauthority && Xvfb :99 -screen 0 1024x768x24 & xauth add :99 . $(mcookie) && uvicorn server:app --host 0.0.0.0 --port 7860"]
+CMD ["sh", "-c", "touch /root/.Xauthority && Xvfb :99 -screen 0 1024x768x24 & xauth add :99 . $(mcookie) && python server.py"]
