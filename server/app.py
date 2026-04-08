@@ -1,33 +1,35 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
-
 from mini.openenv_env import MiniOpenEnv, MiniOpenEnvAction
 
 app = FastAPI(title="Mini OpenEnv Server")
-
 env = MiniOpenEnv()
 
-
+# 1. Update the Model to be more flexible
 class ResetRequest(BaseModel):
     task_name: Optional[str] = None
 
-    # Add this inner class to allow empty bodies
     class Config:
         extra = "allow"
 
 class StepRequest(BaseModel):
     action: MiniOpenEnvAction
 
-@app.get("/")
-async def root():
-    return {"status": "running", "message": "OpenEnv Environment Live"}
+    class Config:
+        extra = "allow"
 
+# 2. Update the Route to handle a missing body
 @app.post("/reset")
-def reset(request: Optional[ResetRequest] = None) -> dict:
-    # If request is None or task_name is missing, default to a task
-    task = request.task_name if (request and request.task_name) else "meeting_note"
-    observation = env.reset(task_name=task)
+async def reset(request: Request) -> dict:
+    # Try to parse JSON, if it fails or is empty, use default
+    try:
+        body = await request.json()
+        task_name = body.get("task_name", "meeting_note")
+    except:
+        task_name = "meeting_note"
+        
+    observation = env.reset(task_name=task_name)
     return {
         "observation": observation.dict(),
         "reward": 0.0,
@@ -35,7 +37,10 @@ def reset(request: Optional[ResetRequest] = None) -> dict:
         "info": {"task_name": env.task_name},
     }
 
-
+# Ensure your health check is still there
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 @app.post("/step")
 def step(request: StepRequest) -> dict:
     try:
@@ -63,10 +68,6 @@ def state() -> dict:
 @app.get("/ping")
 def ping() -> dict:
     return {"ok": True}
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn
