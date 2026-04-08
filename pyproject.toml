@@ -1,0 +1,16 @@
+[project]
+name = "mini-voice-env"
+version = "0.1.0"
+description = "Voice assistant RL environment"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pyautogui",
+    "python-xlib",
+    "psutil",
+    "openenv"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
