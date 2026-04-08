@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xauth \
     python3-tk \
     tk-dev \
+    xdotool \
+    scrot \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,4 +23,7 @@ COPY . .
 
 EXPOSE 7860
 
-CMD ["sh", "-c", "touch /root/.Xauthority && Xvfb :99 -screen 0 1024x768x24 & xauth add :99 . $(mcookie) && python server/app.py"]
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
