@@ -16,6 +16,9 @@ class ResetRequest(BaseModel):
 class StepRequest(BaseModel):
     action: MiniOpenEnvAction
 
+@app.get("/")
+async def root():
+    return {"status": "Environment is Live"}
 
 @app.post("/reset")
 def reset(request: ResetRequest) -> dict:
