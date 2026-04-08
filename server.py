@@ -18,7 +18,7 @@ class StepRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "Environment is Live"}
+    return {"status": "running", "message": "OpenEnv Environment Live"}
 
 @app.post("/reset")
 def reset(request: ResetRequest) -> dict:
@@ -63,3 +63,6 @@ def ping() -> dict:
 async def health():
     return {"status": "ok"}
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)

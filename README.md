@@ -1,4 +1,3 @@
-# Mini Productivity OpenEnv
 ---
 title: Mini Productivity Openenv
 emoji: 🚀
@@ -7,6 +6,8 @@ colorTo: green
 sdk: docker
 app_port: 7860
 ---
+
+# Mini Productivity OpenEnv
 
 A desktop productivity environment for the OpenEnv framework, simulating real-world tasks like drafting meeting notes, customer support responses, and incident reports.
 
