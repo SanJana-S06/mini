@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import base64
 import io
 import json
@@ -11,7 +10,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 import psutil
-import pyautogui
 from pydantic import BaseModel, Field
 
 try:
@@ -32,8 +30,18 @@ except ImportError:  # pragma: no cover
     class Environment:  # type: ignore
         pass
 
-pyautogui.PAUSE = 0.5
-pyautogui.FAILSAFE = False
+_PYAUTOGUI = None
+
+
+def _get_pyautogui():
+    global _PYAUTOGUI
+    if _PYAUTOGUI is None:
+        import pyautogui as _pyautogui
+
+        _pyautogui.PAUSE = 0.5
+        _pyautogui.FAILSAFE = False
+        _PYAUTOGUI = _pyautogui
+    return _PYAUTOGUI
 
 
 class MiniOpenEnvAction(BaseModel):
@@ -311,6 +319,7 @@ class MiniOpenEnv(Environment):
                 return ActionResult(False, "TYPE_TEXT requires a value", {})
             self._focus_workspace()
             try:
+                pyautogui = _get_pyautogui()
                 pyautogui.typewrite(action.value, interval=0.05)
             except Exception:
                 pass
@@ -320,6 +329,7 @@ class MiniOpenEnv(Environment):
         if action.type == "CLICK_SUBMIT":
             self._focus_workspace()
             try:
+                pyautogui = _get_pyautogui()
                 pyautogui.click(120, 500)
             except Exception:
                 pass
@@ -334,6 +344,7 @@ class MiniOpenEnv(Environment):
             if action.value:
                 keys = [key.strip() for key in action.value.split("+") if key.strip()]
                 try:
+                    pyautogui = _get_pyautogui()
                     pyautogui.hotkey(*keys)
                 except Exception:
                     pass
@@ -343,6 +354,7 @@ class MiniOpenEnv(Environment):
         if action.type == "PRESS":
             if action.value:
                 try:
+                    pyautogui = _get_pyautogui()
                     pyautogui.press(action.value)
                 except Exception:
                     pass
@@ -353,6 +365,7 @@ class MiniOpenEnv(Environment):
 
     def _focus_workspace(self) -> None:
         try:
+            pyautogui = _get_pyautogui()
             pyautogui.click(150, 150)
         except Exception:
             pass
@@ -381,6 +394,7 @@ class MiniOpenEnv(Environment):
 
     def _capture_screenshot_png(self) -> Optional[str]:
         try:
+            pyautogui = _get_pyautogui()
             image = pyautogui.screenshot()
             buffer = io.BytesIO()
             image.save(buffer, format="PNG")
@@ -400,6 +414,7 @@ class MiniOpenEnv(Environment):
     def _list_window_titles(self) -> List[str]:
         titles: List[str] = []
         try:
+            pyautogui = _get_pyautogui()
             windows = pyautogui.getAllWindows()
             for window in windows:
                 if window.title:
