@@ -239,10 +239,25 @@ class MiniOpenEnv(Environment):
         self.step_count = 0
         self.done = False
         self.last_action = None
-        self.workspace.stop()
+
+        try:
+            self.workspace.stop()
+        except Exception:
+            pass
+
         self.workspace = TaskWorkspace()
-        self.workspace.start()
-        self.current_observation = self._capture_observation()
+        try:
+            self.workspace.start()
+        except Exception:
+            self.workspace.running = True
+
+        try:
+            self.current_observation = self._capture_observation()
+        except Exception as exc:
+            self.current_observation = self._default_observation()
+            self.current_reward = MiniOpenEnvReward(value=0.0, detail=f"reset_exception: {exc}")
+            return self.current_observation
+
         self.current_reward = MiniOpenEnvReward(value=0.0, detail="reset")
         return self.current_observation
 
@@ -336,15 +351,26 @@ class MiniOpenEnv(Environment):
             pass
 
     def _capture_observation(self) -> MiniOpenEnvObservation:
-        return MiniOpenEnvObservation(
-            window_titles=self._list_window_titles(),
-            timestamp=time.time(),
-            task_name=self.task_name,
-            opened=self.workspace.running,
-            submitted=self.workspace.is_submitted(),
-            text_content=self.workspace.get_text(),
-            screenshot_png=self._capture_screenshot_png() if self.use_screenshot else None,
-        )
+        try:
+            return MiniOpenEnvObservation(
+                window_titles=self._list_window_titles(),
+                timestamp=time.time(),
+                task_name=self.task_name,
+                opened=self.workspace.running,
+                submitted=self.workspace.is_submitted(),
+                text_content=self.workspace.get_text(),
+                screenshot_png=self._capture_screenshot_png() if self.use_screenshot else None,
+            )
+        except Exception:
+            return MiniOpenEnvObservation(
+                window_titles=[],
+                timestamp=time.time(),
+                task_name=self.task_name,
+                opened=getattr(self.workspace, "running", False),
+                submitted=getattr(self.workspace, "submitted", False),
+                text_content="",
+                screenshot_png=None,
+            )
 
     def _capture_screenshot_png(self) -> Optional[str]:
         try:

@@ -146,18 +146,25 @@ def get_model_action(client: OpenAI, step: int, observation: Any, history: List[
 
 async def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-    env = MiniOpenEnv(task_name=TASK_NAME, use_screenshot=False, max_steps=MAX_STEPS)
+    env = None
 
     history: List[str] = []
     rewards: List[float] = []
     steps_taken = 0
     score = 0.0
     success = False
+    error_msg: Optional[str] = None
 
     log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
 
     try:
-        observation = env.reset(task_name=TASK_NAME)
+        try:
+            env = MiniOpenEnv(task_name=TASK_NAME, use_screenshot=False, max_steps=MAX_STEPS)
+            observation = env.reset(task_name=TASK_NAME)
+        except Exception as exc:
+            error_msg = str(exc)
+            return
+
         for step in range(1, MAX_STEPS + 1):
             action = get_model_action(client, step, observation, history)
             try:
@@ -182,10 +189,11 @@ async def main() -> None:
         score = min(1.0, sum(rewards) / float(MAX_STEPS)) if MAX_STEPS > 0 else 0.0
         success = score >= SUCCESS_SCORE_THRESHOLD
     finally:
-        try:
-            env.close()
-        except Exception:
-            pass
+        if env is not None:
+            try:
+                env.close()
+            except Exception:
+                pass
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
 
