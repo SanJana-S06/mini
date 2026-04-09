@@ -21,6 +21,12 @@ except Exception:
     TK_AVAILABLE = False
 
 try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+
+try:
     from openenv import Environment
 except ImportError:  # pragma: no cover
     class Environment:  # type: ignore
@@ -194,6 +200,7 @@ class MiniOpenEnv(Environment):
         self.current_observation: MiniOpenEnvObservation = self._default_observation()
         self.current_reward: MiniOpenEnvReward = MiniOpenEnvReward(value=0.0, detail="reset")
         self.workspace = TaskWorkspace()
+        time.sleep(2)  # Give Xvfb time to start
         self.tasks = TASKS
         self.current_task: Optional[Dict[str, Any]] = None
         self.task_def = TASK_DEFINITIONS.get(self.task_name, TASK_DEFINITIONS["meeting_note"])
@@ -379,6 +386,15 @@ class MiniOpenEnv(Environment):
             image.save(buffer, format="PNG")
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
         except Exception:
+            # Return a blank black image instead of None
+            if PIL_AVAILABLE:
+                try:
+                    img = Image.new('RGB', (100, 100), color='black')
+                    buffer = io.BytesIO()
+                    img.save(buffer, format="PNG")
+                    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+                except Exception:
+                    pass
             return None
 
     def _list_window_titles(self) -> List[str]:
